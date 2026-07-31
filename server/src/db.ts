@@ -7,11 +7,11 @@ const connectionString =
   process.env.DATABASE_URL ??
   "postgresql://localhost:5432/ai_autotrader_dev";
 
-// Render (and most managed Postgres hosts) require SSL but present a
-// self-signed-style chain the default Node TLS trust store won't validate.
-const useSsl = /render\.com|amazonaws\.com|neon\.tech|supabase\.co/.test(
-  connectionString
-);
+// Any non-local Postgres (Render's internal DB host included — it doesn't
+// always contain "render.com") requires SSL, and presents a self-signed-style
+// chain the default Node TLS trust store won't validate.
+const isLocal = /localhost|127\.0\.0\.1/.test(connectionString);
+const useSsl = !isLocal;
 
 export const pool = new Pool({
   connectionString,
