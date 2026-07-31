@@ -32,7 +32,8 @@ export async function initSchema(): Promise<void> {
       model TEXT NOT NULL DEFAULT 'claude-haiku-4-5',
       cycle_interval_minutes INTEGER NOT NULL DEFAULT 15,
       max_runtime_hours DOUBLE PRECISION,
-      max_position_pct DOUBLE PRECISION NOT NULL DEFAULT 30
+      max_position_pct DOUBLE PRECISION NOT NULL DEFAULT 30,
+      risk_profile TEXT NOT NULL DEFAULT 'moderate'
     );
 
     CREATE TABLE IF NOT EXISTS decisions (
@@ -49,7 +50,8 @@ export async function initSchema(): Promise<void> {
       cost_usd DOUBLE PRECISION NOT NULL,
       model TEXT NOT NULL,
       approved BOOLEAN NOT NULL,
-      block_reason TEXT
+      block_reason TEXT,
+      risk_profile TEXT NOT NULL DEFAULT 'moderate'
     );
 
     CREATE TABLE IF NOT EXISTS positions (
@@ -68,6 +70,13 @@ export async function initSchema(): Promise<void> {
       last_run_at TEXT,
       started_at TEXT
     );
+  `);
+
+  // Additive migrations for tables that already existed before this column
+  // was introduced — CREATE TABLE IF NOT EXISTS above is a no-op for them.
+  await pool.query(`
+    ALTER TABLE guardrail_settings ADD COLUMN IF NOT EXISTS risk_profile TEXT NOT NULL DEFAULT 'moderate';
+    ALTER TABLE decisions ADD COLUMN IF NOT EXISTS risk_profile TEXT NOT NULL DEFAULT 'moderate';
   `);
 
   await pool.query(

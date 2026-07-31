@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { config } from "../config.js";
 import { computeCostUsd } from "./costTracker.js";
+import { RISK_PROFILE_GUIDANCE } from "./riskProfiles.js";
 import type {
   AgentDecision,
   CostBudget,
@@ -37,7 +38,7 @@ function buildDecisionSchema(allowSell: boolean) {
   };
 }
 
-function buildSystemPrompt(allowSell: boolean): string {
+function buildSystemPrompt(allowSell: boolean, riskProfile: GuardrailSettings["riskProfile"]): string {
   const authorityLine = allowSell
     ? 'You are authorized to take ONE action: "buy", "sell", or "hold" for a single symbol. You may sell only symbols shown in current_holdings, and never more than the held quantity.'
     : 'You are NOT authorized to sell — the user has not granted sell permission. You may only choose "buy" or "hold" for a single symbol, even if a position is currently at a loss.';
@@ -47,6 +48,8 @@ Analyze trading_candidates (live price + pre-computed buy ceiling per symbol), h
 Use historical_trend to judge whether today's move is a continuation or a reversal (e.g. price above both SMA5 and SMA20 with positive trendPercent = sustained uptrend; a single-day drop against a rising SMA20 may be noise, not a signal) — do not react to the latest snapshot in isolation.
 Check recent_decision_history before deciding: do not flip-flop (e.g. buy then immediately sell/rebuy the same symbol) without a genuinely new data point since your last decision on that symbol, and do not repeat a rationale that led to a blocked/rejected order.
 ${authorityLine}
+
+${RISK_PROFILE_GUIDANCE[riskProfile]}
 
 DIVERSIFICATION — DO NOT COMPUTE THIS YOURSELF: trading_candidates gives you, per symbol, a pre-computed "maxBuyQuantity" that already accounts for maxPositionPct AND available capital. If you choose "buy", your quantity for that symbol MUST be <= its maxBuyQuantity — treat this as a hard ceiling, not a target. It is already the correct answer to "how much can I buy here"; do not re-derive it from price/percentages yourself, and do not trust your own arithmetic over this number. A buy above it is rejected server-side regardless of your rationale. Actively spread capital across multiple symbols rather than concentrating in whichever one looks best today; all else being roughly equal, prefer a symbol at 0% current allocation over adding to one you already hold.
 
@@ -138,7 +141,7 @@ export async function decide(params: {
   const response = await client.messages.create({
     model: settings.model,
     max_tokens: 512,
-    system: buildSystemPrompt(settings.allowSell),
+    system: buildSystemPrompt(settings.allowSell, settings.riskProfile),
     // Sonnet 5 thinks by default (billed); disable it since this is a single
     // structured-decision call, not a task that benefits from extended reasoning.
     ...(isSonnet ? { thinking: { type: "disabled" as const } } : {}),

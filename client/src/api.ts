@@ -1,5 +1,21 @@
 export type ModelChoice = "claude-haiku-4-5" | "claude-sonnet-5";
 
+export type RiskProfile = "conservative" | "moderate" | "aggressive";
+
+export const ALL_RISK_PROFILES: RiskProfile[] = ["conservative", "moderate", "aggressive"];
+
+export const RISK_PROFILE_LABELS: Record<RiskProfile, string> = {
+  conservative: "보수적",
+  moderate: "중립",
+  aggressive: "공격적",
+};
+
+export const RISK_PROFILE_HINTS: Record<RiskProfile, string> = {
+  conservative: "종목당 한도의 60%만 사용, 변동성 낮은 종목 선호, 확신 낮으면 보류",
+  moderate: "종목당 한도를 그대로 사용, 균형 잡힌 판단",
+  aggressive: "종목당 한도의 최대 150%(상한 100%)까지 사용, 모멘텀 강한 종목 선호",
+};
+
 export type Sector =
   | "tech"
   | "finance"
@@ -38,6 +54,7 @@ export interface GuardrailSettings {
   cycleIntervalMinutes: number;
   maxRuntimeHours: number | null;
   maxPositionPct: number;
+  riskProfile: RiskProfile;
 }
 
 export interface AgentState {
@@ -64,6 +81,7 @@ export interface DecisionLogRow {
   model: string;
   approved: boolean;
   blockReason: string | null;
+  riskProfile: RiskProfile;
 }
 
 export interface PositionRow {

@@ -8,6 +8,7 @@ import {
   checkRuntimeLimit,
 } from "./guardrailEngine.js";
 import { applyOrder } from "./portfolioSimulator.js";
+import { effectivePositionCapPct } from "./riskProfiles.js";
 import {
   addCost,
   getAgentState,
@@ -77,8 +78,13 @@ function buildPortfolioAllocation(
   positions: PositionRow[],
   currentPrices: Map<string, number>
 ): PortfolioAllocation {
-  const positionCapUsd =
-    settings.investmentAmount * (settings.maxPositionPct / 100);
+  // Risk profile scales the effective concentration ceiling — a hard,
+  // deterministic effect on sizing rather than a prompt-only suggestion.
+  const effectivePositionPct = effectivePositionCapPct(
+    settings.maxPositionPct,
+    settings.riskProfile
+  );
+  const positionCapUsd = settings.investmentAmount * (effectivePositionPct / 100);
 
   const entries = positions.map((p) => {
     const price = currentPrices.get(p.symbol) ?? p.avgPrice;
@@ -102,7 +108,7 @@ function buildPortfolioAllocation(
       settings.investmentAmount > 0
         ? (cashUsd / settings.investmentAmount) * 100
         : 0,
-    maxPositionPct: settings.maxPositionPct,
+    maxPositionPct: effectivePositionPct,
     maxNewPositionNotionalUsd: positionCapUsd,
   };
 }
@@ -182,6 +188,7 @@ export async function runCycle(): Promise<void> {
         model: result.model,
         approved: false,
         blockReason: costCheck.reason,
+        riskProfile: settings.riskProfile,
       });
       await haltAgent(costCheck.reason ?? "cost_limit_exceeded");
       await touchLastRun();
@@ -203,6 +210,7 @@ export async function runCycle(): Promise<void> {
         model: result.model,
         approved: false,
         blockReason: lossCheck.reason,
+        riskProfile: settings.riskProfile,
       });
       await haltAgent(lossCheck.reason ?? "loss_limit_exceeded");
       await touchLastRun();
@@ -237,6 +245,7 @@ export async function runCycle(): Promise<void> {
       model: result.model,
       approved: orderCheck.approved,
       blockReason: orderCheck.reason,
+      riskProfile: settings.riskProfile,
     });
 
     await touchLastRun();

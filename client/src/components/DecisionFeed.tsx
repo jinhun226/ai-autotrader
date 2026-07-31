@@ -1,4 +1,4 @@
-import type { DecisionLogRow } from "../api";
+import { RISK_PROFILE_LABELS, type DecisionLogRow } from "../api";
 
 interface Props {
   decisions: DecisionLogRow[];
@@ -33,6 +33,7 @@ export function DecisionFeed({ decisions }: Props) {
                 <span>신뢰도 {(d.confidence * 100).toFixed(0)}%</span>
                 <span>모델 {d.model}</span>
                 <span>비용 ${d.costUsd.toFixed(4)}</span>
+                <span>성향 {RISK_PROFILE_LABELS[d.riskProfile]}</span>
                 {!d.approved && <span className="error">차단: {d.blockReason}</span>}
               </div>
             </li>

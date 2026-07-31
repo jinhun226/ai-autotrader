@@ -4,6 +4,8 @@ import { ALL_SECTORS } from "../sectors.js";
 import { asyncHandler } from "../asyncHandler.js";
 import type { GuardrailSettings } from "../types.js";
 
+const VALID_RISK_PROFILES = ["conservative", "moderate", "aggressive"];
+
 export const guardrailRouter = Router();
 
 guardrailRouter.get(
@@ -29,7 +31,9 @@ guardrailRouter.post(
       typeof body.model !== "string" ||
       typeof body.cycleIntervalMinutes !== "number" ||
       (body.maxRuntimeHours !== null && typeof body.maxRuntimeHours !== "number") ||
-      typeof body.maxPositionPct !== "number"
+      typeof body.maxPositionPct !== "number" ||
+      typeof body.riskProfile !== "string" ||
+      !VALID_RISK_PROFILES.includes(body.riskProfile)
     ) {
       res.status(400).json({ error: "invalid guardrail settings payload" });
       return;

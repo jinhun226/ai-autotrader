@@ -1,5 +1,7 @@
 export type ModelChoice = "claude-haiku-4-5" | "claude-sonnet-5";
 
+export type RiskProfile = "conservative" | "moderate" | "aggressive";
+
 export type Sector =
   | "tech"
   | "finance"
@@ -26,6 +28,9 @@ export interface GuardrailSettings {
   maxRuntimeHours: number | null;
   /** Diversification cap — no single symbol's total exposure may exceed this % of investmentAmount. */
   maxPositionPct: number;
+  /** Scales the effective position-sizing ceiling and nudges symbol/confidence
+   * preference in the reasoning prompt. See services/riskProfiles.ts. */
+  riskProfile: RiskProfile;
 }
 
 export type DecisionAction = "buy" | "sell" | "hold";
@@ -53,6 +58,8 @@ export interface DecisionLogRow {
   model: string;
   approved: boolean;
   blockReason: string | null;
+  /** Risk profile active in guardrail settings when this decision was made. */
+  riskProfile: RiskProfile;
 }
 
 export interface PositionRow {

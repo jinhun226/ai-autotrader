@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { ALL_SECTORS, SECTOR_LABELS, type GuardrailSettings, type ModelChoice, type Sector } from "../api";
+import {
+  ALL_RISK_PROFILES,
+  ALL_SECTORS,
+  RISK_PROFILE_HINTS,
+  RISK_PROFILE_LABELS,
+  SECTOR_LABELS,
+  type GuardrailSettings,
+  type ModelChoice,
+  type RiskProfile,
+  type Sector,
+} from "../api";
 
 interface Props {
   settings: GuardrailSettings;
@@ -177,6 +187,28 @@ export function GuardrailForm({ settings, onSave, disabled }: Props) {
           }
         />
       </label>
+
+      <div className="field-label">투자 성향</div>
+      <div className="risk-profile-grid">
+        {ALL_RISK_PROFILES.map((profile) => (
+          <label
+            key={profile}
+            className={
+              form.riskProfile === profile ? "risk-profile-option risk-profile-selected" : "risk-profile-option"
+            }
+          >
+            <input
+              type="radio"
+              name="riskProfile"
+              checked={form.riskProfile === profile}
+              disabled={disabled}
+              onChange={() => setForm({ ...form, riskProfile: profile as RiskProfile })}
+            />
+            <span className="risk-profile-name">{RISK_PROFILE_LABELS[profile]}</span>
+          </label>
+        ))}
+      </div>
+      <p className="hint">{RISK_PROFILE_HINTS[form.riskProfile]}</p>
 
       <button type="submit" disabled={disabled || saving}>
         {saving ? "저장 중..." : "설정 저장"}

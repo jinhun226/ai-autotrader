@@ -87,6 +87,40 @@ label {
   margin-bottom: 8px;
 }
 
+.risk-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.risk-profile-option {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 9px 6px;
+  margin-bottom: 0;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.risk-profile-option input[type="radio"] {
+  display: none;
+}
+
+.risk-profile-selected {
+  border-color: var(--text);
+  background: #f7f7f7;
+}
+
 .sector-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

@@ -1,4 +1,5 @@
 import type { AgentDecision, AgentState, GuardrailSettings, PositionRow } from "../types.js";
+import { effectivePositionCapPct } from "./riskProfiles.js";
 
 export interface GuardrailCheckResult {
   approved: boolean;
@@ -89,12 +90,12 @@ export function checkOrder(
       ? position.quantity * currentPrice
       : 0;
     const projectedSymbolNotional = existingSymbolNotional + notional;
-    const positionCap =
-      settings.investmentAmount * (settings.maxPositionPct / 100);
+    const effectivePct = effectivePositionCapPct(settings.maxPositionPct, settings.riskProfile);
+    const positionCap = settings.investmentAmount * (effectivePct / 100);
     if (projectedSymbolNotional > positionCap) {
       return {
         approved: false,
-        reason: `분산 투자 한도 초과: ${decision.symbol} 총비중 $${projectedSymbolNotional.toFixed(2)} > 종목당 한도 $${positionCap.toFixed(2)} (${settings.maxPositionPct}%)`,
+        reason: `분산 투자 한도 초과: ${decision.symbol} 총비중 $${projectedSymbolNotional.toFixed(2)} > 종목당 한도 $${positionCap.toFixed(2)} (${effectivePct.toFixed(0)}%)`,
         haltAgent: false,
       };
     }

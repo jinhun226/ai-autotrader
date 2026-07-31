@@ -14,7 +14,7 @@ export async function getGuardrailSettings(): Promise<GuardrailSettings> {
   const { rows } = await pool.query(
     `SELECT investment_amount, loss_limit, cost_limit_usd, sectors, all_sectors_delegated,
             allow_sell, watch_symbols, model, cycle_interval_minutes, max_runtime_hours,
-            max_position_pct
+            max_position_pct, risk_profile
      FROM guardrail_settings WHERE id = 1`
   );
   const row = rows[0] as {
@@ -29,6 +29,7 @@ export async function getGuardrailSettings(): Promise<GuardrailSettings> {
     cycle_interval_minutes: number;
     max_runtime_hours: number | null;
     max_position_pct: number;
+    risk_profile: string;
   };
   return {
     investmentAmount: row.investment_amount,
@@ -42,6 +43,7 @@ export async function getGuardrailSettings(): Promise<GuardrailSettings> {
     cycleIntervalMinutes: row.cycle_interval_minutes,
     maxRuntimeHours: row.max_runtime_hours,
     maxPositionPct: row.max_position_pct,
+    riskProfile: row.risk_profile as GuardrailSettings["riskProfile"],
   };
 }
 
@@ -66,7 +68,8 @@ export async function saveGuardrailSettings(
       model = $8,
       cycle_interval_minutes = $9,
       max_runtime_hours = $10,
-      max_position_pct = $11
+      max_position_pct = $11,
+      risk_profile = $12
      WHERE id = 1`,
     [
       settings.investmentAmount,
@@ -80,6 +83,7 @@ export async function saveGuardrailSettings(
       settings.cycleIntervalMinutes,
       settings.maxRuntimeHours,
       settings.maxPositionPct,
+      settings.riskProfile,
     ]
   );
 }
@@ -227,12 +231,13 @@ export async function insertDecision(row: {
   model: string;
   approved: boolean;
   blockReason: string | null;
+  riskProfile: string;
 }): Promise<void> {
   await pool.query(
     `INSERT INTO decisions
       (created_at, snapshot, action, symbol, quantity, rationale, confidence,
-       input_tokens, output_tokens, cost_usd, model, approved, block_reason)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+       input_tokens, output_tokens, cost_usd, model, approved, block_reason, risk_profile)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
     [
       new Date().toISOString(),
       JSON.stringify(row.snapshot),
@@ -247,6 +252,7 @@ export async function insertDecision(row: {
       row.model,
       row.approved,
       row.blockReason,
+      row.riskProfile,
     ]
   );
 }
@@ -254,7 +260,7 @@ export async function insertDecision(row: {
 export async function listDecisions(limit = 50): Promise<DecisionLogRow[]> {
   const { rows } = await pool.query(
     `SELECT id, created_at, snapshot, action, symbol, quantity, rationale, confidence,
-            input_tokens, output_tokens, cost_usd, model, approved, block_reason
+            input_tokens, output_tokens, cost_usd, model, approved, block_reason, risk_profile
      FROM decisions ORDER BY id DESC LIMIT $1`,
     [limit]
   );
@@ -274,6 +280,7 @@ export async function listDecisions(limit = 50): Promise<DecisionLogRow[]> {
       model: string;
       approved: boolean;
       block_reason: string | null;
+      risk_profile: string;
     }[]
   ).map((r) => ({
     id: r.id,
@@ -290,6 +297,7 @@ export async function listDecisions(limit = 50): Promise<DecisionLogRow[]> {
     model: r.model,
     approved: r.approved,
     blockReason: r.block_reason,
+    riskProfile: r.risk_profile as DecisionLogRow["riskProfile"],
   }));
 }
 
