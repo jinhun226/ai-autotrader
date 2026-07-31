@@ -13,6 +13,7 @@ export default function App() {
   const [positions, setPositions] = useState<PositionRow[]>([]);
   const [realizedPnl, setRealizedPnl] = useState(0);
   const [totalUnrealizedPnl, setTotalUnrealizedPnl] = useState(0);
+  const [marketOpen, setMarketOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -30,6 +31,7 @@ export default function App() {
       setPositions(p.positions);
       setRealizedPnl(p.realizedPnl);
       setTotalUnrealizedPnl(p.totalUnrealizedPnl);
+      setMarketOpen(p.marketOpen);
       setLoadError(null);
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : String(err));
@@ -102,6 +104,7 @@ export default function App() {
           positions={positions}
           realizedPnl={realizedPnl}
           totalUnrealizedPnl={totalUnrealizedPnl}
+          marketOpen={marketOpen}
         />
       </div>
 

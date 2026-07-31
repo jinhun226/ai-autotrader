@@ -4,6 +4,7 @@ interface Props {
   positions: PositionRow[];
   realizedPnl: number;
   totalUnrealizedPnl: number;
+  marketOpen: boolean;
 }
 
 /** Snaps tiny floating-point noise (e.g. -3.6e-14) to a clean 0 so the UI
@@ -26,10 +27,15 @@ function formatQuantity(value: number): string {
   return value.toFixed(4).replace(/\.?0+$/, "");
 }
 
-export function PortfolioView({ positions, realizedPnl, totalUnrealizedPnl }: Props) {
+export function PortfolioView({ positions, realizedPnl, totalUnrealizedPnl, marketOpen }: Props) {
   return (
     <div className="card">
-      <h2>모의 포트폴리오</h2>
+      <div className="section-header">
+        <h2>모의 포트폴리오</h2>
+        <span className={marketOpen ? "market-badge market-open" : "market-badge market-closed"}>
+          {marketOpen ? "장중" : "장마감"}
+        </span>
+      </div>
       <div className="pnl-summary">
         <div>
           <span className="field-label">실현 손익</span>
@@ -52,7 +58,7 @@ export function PortfolioView({ positions, realizedPnl, totalUnrealizedPnl }: Pr
               <th>수량</th>
               <th>평단가</th>
               <th>현재가</th>
-              <th>평가손익</th>
+              <th>손익</th>
             </tr>
           </thead>
           <tbody>
@@ -60,7 +66,9 @@ export function PortfolioView({ positions, realizedPnl, totalUnrealizedPnl }: Pr
               <tr key={p.symbol}>
                 <td>
                   <div className="position-symbol">{p.symbol}</div>
-                  <div className="position-name">{p.name}</div>
+                  <div className="position-name" title={p.name}>
+                    {p.name}
+                  </div>
                 </td>
                 <td>{formatQuantity(p.quantity)}</td>
                 <td>${p.avgPrice.toFixed(2)}</td>

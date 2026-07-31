@@ -2,6 +2,7 @@ import { Router } from "express";
 import { getAgentState, getPositions } from "../store.js";
 import { asyncHandler } from "../asyncHandler.js";
 import { fetchMarketSnapshots } from "../services/alpaca.js";
+import { isMarketOpen } from "../services/marketHours.js";
 import { SYMBOL_NAMES } from "../sectors.js";
 
 export const portfolioRouter = Router();
@@ -42,6 +43,7 @@ portfolioRouter.get(
       positions: enrichedPositions,
       realizedPnl: agentState.realizedPnl,
       totalUnrealizedPnl,
+      marketOpen: isMarketOpen(),
     });
   })
 );

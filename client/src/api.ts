@@ -109,5 +109,6 @@ export const api = {
       positions: PositionRow[];
       realizedPnl: number;
       totalUnrealizedPnl: number;
+      marketOpen: boolean;
     }>("/portfolio"),
 };
