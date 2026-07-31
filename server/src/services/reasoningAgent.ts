@@ -43,16 +43,15 @@ function buildSystemPrompt(allowSell: boolean): string {
     : 'You are NOT authorized to sell — the user has not granted sell permission. You may only choose "buy" or "hold" for a single symbol, even if a position is currently at a loss.';
 
   return `You are the Reasoning Agent of an AI-native autonomous investing OS (simulated/paper trading only — no real money moves).
-Analyze the given market snapshot, historical_trend (20-day SMA/momentum/volatility), recent SEC filing headlines, current holdings, and your own recent_decision_history for the watched symbols, then decide.
+Analyze trading_candidates (live price + pre-computed buy ceiling per symbol), historical_trend (20-day SMA/momentum/volatility), recent SEC filing headlines, current holdings, and your own recent_decision_history for the watched symbols, then decide.
 Use historical_trend to judge whether today's move is a continuation or a reversal (e.g. price above both SMA5 and SMA20 with positive trendPercent = sustained uptrend; a single-day drop against a rising SMA20 may be noise, not a signal) — do not react to the latest snapshot in isolation.
 Check recent_decision_history before deciding: do not flip-flop (e.g. buy then immediately sell/rebuy the same symbol) without a genuinely new data point since your last decision on that symbol, and do not repeat a rationale that led to a blocked/rejected order.
 ${authorityLine}
 
-DIVERSIFICATION: portfolio_allocation shows each symbol's current % of total investment and maxPositionPct (a hard cap enforced server-side — a buy that would push any symbol over it is rejected regardless of your reasoning). Actively spread capital across multiple symbols in watch_symbols rather than concentrating in whichever one looks best today; all else being roughly equal, prefer adding a NEW symbol at 0% allocation over adding to one that is already near maxPositionPct.
+DIVERSIFICATION — DO NOT COMPUTE THIS YOURSELF: trading_candidates gives you, per symbol, a pre-computed "maxBuyQuantity" that already accounts for maxPositionPct AND available capital. If you choose "buy", your quantity for that symbol MUST be <= its maxBuyQuantity — treat this as a hard ceiling, not a target. It is already the correct answer to "how much can I buy here"; do not re-derive it from price/percentages yourself, and do not trust your own arithmetic over this number. A buy above it is rejected server-side regardless of your rationale. Actively spread capital across multiple symbols rather than concentrating in whichever one looks best today; all else being roughly equal, prefer a symbol at 0% current allocation over adding to one you already hold.
 
 PACING: time_budget tells you how much of your allowed runtime has elapsed and roughly how many decision cycles remain (null fields = no time limit, no need to pace). cost_budget tells you how much of the API cost limit remains. When a time limit IS set, do not deploy most of available_capital_usd in the first few cycles — spread buys across the remaining cycles/time so you can react to how earlier picks perform and still be diversified near the end of the window. If remainingHours/estimatedRemainingCycles is small and you are still underinvested relative to a diversified target, it is reasonable to size a bit larger to finish deploying before time runs out.
-Fractional share quantities are fully supported down to small dollar amounts (e.g. 0.12, 0.03, 1.5) — this mirrors Alpaca's real fractional-trading API for major US equities. Compute quantity = (dollar amount you want to allocate) / price; do NOT round to whole shares. Never describe available capital as "insufficient" or "capital-constrained" merely because it can't buy a whole share — with fractional trading, any available_capital_usd above roughly $1 is enough to size a proportionate buy. Only choose "hold" because the investment signal itself is weak or mixed, never because the resulting position would be small in dollar terms.
-Stay within the user's investment amount and never recommend a buy quantity whose notional value exceeds the remaining investable capital.
+Fractional share quantities are fully supported down to small dollar amounts (e.g. 0.12, 0.03, 1.5) — this mirrors Alpaca's real fractional-trading API for major US equities. Your quantity does not need to equal maxBuyQuantity — size it to your actual conviction (a smaller, high-conviction slice is fine), just never exceed it. Never describe available capital as "insufficient" or "capital-constrained" merely because it can't buy a whole share — with fractional trading, any maxBuyNotionalUsd above roughly $1 is enough to size a proportionate buy. Only choose "hold" because the investment signal itself is weak or mixed, never because the resulting position would be small in dollar terms.
 Be conservative: prefer "hold" when the evidence is weak or mixed. Always explain your reasoning briefly (2-3 sentences) citing the specific data points you used.`;
 }
 
@@ -89,6 +88,28 @@ export async function decide(params: {
     portfolioAllocation,
   } = params;
 
+  const remainingCapacityBySymbol = new Map(
+    portfolioAllocation.positions.map((p) => [p.symbol, p.remainingCapacityUsd])
+  );
+  const tradingCandidates = snapshots.map((s) => {
+    const positionCapUsd =
+      remainingCapacityBySymbol.get(s.symbol) ??
+      portfolioAllocation.maxNewPositionNotionalUsd;
+    const maxBuyNotionalUsd = Math.max(
+      0,
+      Math.min(positionCapUsd, availableCapital)
+    );
+    return {
+      symbol: s.symbol,
+      price: s.price,
+      changePercent: s.changePercent,
+      volume: s.volume,
+      // Pre-computed hard ceiling — see DIVERSIFICATION note in the system prompt.
+      maxBuyNotionalUsd,
+      maxBuyQuantity: s.price > 0 ? maxBuyNotionalUsd / s.price : 0,
+    };
+  });
+
   const userContent = JSON.stringify(
     {
       mandate: settings.allSectorsDelegated
@@ -103,7 +124,7 @@ export async function decide(params: {
       available_capital_usd: availableCapital,
       time_budget: timeBudget,
       cost_budget: costBudget,
-      market_snapshots: snapshots,
+      trading_candidates: tradingCandidates,
       historical_trend: historicalStats,
       recent_filings: filings,
       recent_decision_history: recentDecisions,

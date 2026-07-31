@@ -77,6 +77,9 @@ function buildPortfolioAllocation(
   positions: PositionRow[],
   currentPrices: Map<string, number>
 ): PortfolioAllocation {
+  const positionCapUsd =
+    settings.investmentAmount * (settings.maxPositionPct / 100);
+
   const entries = positions.map((p) => {
     const price = currentPrices.get(p.symbol) ?? p.avgPrice;
     const marketValueUsd = p.quantity * price;
@@ -87,6 +90,7 @@ function buildPortfolioAllocation(
         settings.investmentAmount > 0
           ? (marketValueUsd / settings.investmentAmount) * 100
           : 0,
+      remainingCapacityUsd: Math.max(0, positionCapUsd - marketValueUsd),
     };
   });
   const deployedUsd = entries.reduce((sum, e) => sum + e.marketValueUsd, 0);
@@ -99,6 +103,7 @@ function buildPortfolioAllocation(
         ? (cashUsd / settings.investmentAmount) * 100
         : 0,
     maxPositionPct: settings.maxPositionPct,
+    maxNewPositionNotionalUsd: positionCapUsd,
   };
 }
 

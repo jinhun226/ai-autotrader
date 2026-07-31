@@ -118,6 +118,8 @@ export interface AllocationEntry {
   symbol: string;
   marketValueUsd: number;
   percentOfInvestment: number;
+  /** Max additional USD you may still buy of THIS symbol before hitting maxPositionPct. */
+  remainingCapacityUsd: number;
 }
 
 export interface PortfolioAllocation {
@@ -125,6 +127,8 @@ export interface PortfolioAllocation {
   cashUsd: number;
   cashPercentOfInvestment: number;
   maxPositionPct: number;
+  /** investmentAmount * maxPositionPct / 100 — the ceiling for a symbol not in `positions`. */
+  maxNewPositionNotionalUsd: number;
 }
 
 export interface FilingSnippet {
