@@ -1,0 +1,28 @@
+databases:
+  - name: ai-autotrader-db
+    plan: free
+    databaseName: ai_autotrader
+    user: ai_autotrader
+
+services:
+  - type: web
+    name: ai-autotrader
+    runtime: node
+    plan: free
+    buildCommand: "cd client && npm install && npm run build && cd ../server && npm install && npm run build"
+    startCommand: "cd server && npm start"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-autotrader-db
+          property: connectionString
+      # Set these in the Render dashboard after the first deploy — never commit real
+      # keys to the repo. Render prompts for any envVar marked sync: false.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ALPACA_API_KEY_ID
+        sync: false
+      - key: ALPACA_API_SECRET_KEY
+        sync: false
