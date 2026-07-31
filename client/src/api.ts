@@ -71,6 +71,11 @@ export interface PositionRow {
   quantity: number;
   avgPrice: number;
   updatedAt: string;
+  name: string;
+  currentPrice: number;
+  marketValueUsd: number;
+  unrealizedPnl: number;
+  unrealizedPnlPercent: number;
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -100,5 +105,9 @@ export const api = {
   wipeAgent: () => request<AgentState>("/agent/wipe", { method: "POST" }),
   getDecisions: () => request<DecisionLogRow[]>("/decisions?limit=50"),
   getPortfolio: () =>
-    request<{ positions: PositionRow[]; realizedPnl: number }>("/portfolio"),
+    request<{
+      positions: PositionRow[];
+      realizedPnl: number;
+      totalUnrealizedPnl: number;
+    }>("/portfolio"),
 };

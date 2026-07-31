@@ -12,6 +12,7 @@ export default function App() {
   const [decisions, setDecisions] = useState<DecisionLogRow[]>([]);
   const [positions, setPositions] = useState<PositionRow[]>([]);
   const [realizedPnl, setRealizedPnl] = useState(0);
+  const [totalUnrealizedPnl, setTotalUnrealizedPnl] = useState(0);
   const [busy, setBusy] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -28,6 +29,7 @@ export default function App() {
       setDecisions(d);
       setPositions(p.positions);
       setRealizedPnl(p.realizedPnl);
+      setTotalUnrealizedPnl(p.totalUnrealizedPnl);
       setLoadError(null);
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : String(err));
@@ -96,7 +98,11 @@ export default function App() {
           costLimitUsd={settings.costLimitUsd}
         />
 
-        <PortfolioView positions={positions} realizedPnl={realizedPnl} />
+        <PortfolioView
+          positions={positions}
+          realizedPnl={realizedPnl}
+          totalUnrealizedPnl={totalUnrealizedPnl}
+        />
       </div>
 
       <DecisionFeed decisions={decisions} />

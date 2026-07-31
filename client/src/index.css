@@ -210,6 +210,38 @@ button.danger {
   color: var(--danger);
 }
 
+.pnl-summary {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 20px;
+}
+
+.pnl-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pnl-summary strong {
+  font-size: 1.1rem;
+}
+
+.position-symbol {
+  font-weight: 600;
+}
+
+.position-name {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.position-pnl-pct {
+  font-size: 0.7rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
 .meter {
   height: 4px;
   background: #f0f0f0;

@@ -29,6 +29,24 @@ export const SECTOR_SYMBOLS: Record<Sector, string[]> = {
   industrial: ["BA", "CAT"],
 };
 
+// Human-readable names for the curated universe above — used to label
+// positions in the UI ("AAPL" -> "Apple Inc.") without a paid symbol-lookup API.
+export const SYMBOL_NAMES: Record<string, string> = {
+  AAPL: "Apple Inc.",
+  MSFT: "Microsoft Corporation",
+  NVDA: "NVIDIA Corporation",
+  JPM: "JPMorgan Chase & Co.",
+  GS: "Goldman Sachs Group Inc.",
+  JNJ: "Johnson & Johnson",
+  UNH: "UnitedHealth Group Inc.",
+  XOM: "Exxon Mobil Corporation",
+  CVX: "Chevron Corporation",
+  AMZN: "Amazon.com, Inc.",
+  TSLA: "Tesla, Inc.",
+  BA: "The Boeing Company",
+  CAT: "Caterpillar Inc.",
+};
+
 const MAX_WATCH_SYMBOLS = 8;
 
 /** Resolves the user's sector selection (or full delegation) into a bounded,
