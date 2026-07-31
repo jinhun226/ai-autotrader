@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { config, diagnoseEnv } from "./config.js";
+import { config } from "./config.js";
 import { initSchema } from "./db.js";
 import { guardrailRouter } from "./routes/guardrail.js";
 import { agentRouter } from "./routes/agent.js";
@@ -25,12 +25,6 @@ async function main() {
 
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true });
-  });
-
-  // Temporary diagnostic — never returns secret values, only length + the
-  // position/code of a bad (non-printable-ASCII) character if one exists.
-  app.get("/api/debug/env-check", (_req, res) => {
-    res.json(diagnoseEnv());
   });
 
   // In production, this server also serves the built React client
