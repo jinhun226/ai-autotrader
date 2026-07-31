@@ -9,7 +9,10 @@ services:
     name: ai-autotrader
     runtime: node
     plan: free
-    buildCommand: "cd client && npm install && npm run build && cd ../server && npm install && npm run build"
+    # NODE_ENV=production (set below) makes plain `npm install` skip devDependencies,
+    # which is where vite/typescript/@types/react live — --include=dev forces them in
+    # for the build step; the runtime env still has NODE_ENV=production as intended.
+    buildCommand: "cd client && npm install --include=dev && npm run build && cd ../server && npm install --include=dev && npm run build"
     startCommand: "cd server && npm start"
     envVars:
       - key: NODE_ENV
