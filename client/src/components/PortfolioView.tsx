@@ -29,7 +29,7 @@ function formatQuantity(value: number): string {
 
 export function PortfolioView({ positions, realizedPnl, totalUnrealizedPnl, marketOpen }: Props) {
   return (
-    <div className="card">
+    <div className="card wide-card">
       <div className="section-header">
         <h2>모의 포트폴리오</h2>
         <span className={marketOpen ? "market-badge market-open" : "market-badge market-closed"}>
@@ -51,39 +51,41 @@ export function PortfolioView({ positions, realizedPnl, totalUnrealizedPnl, mark
       {positions.length === 0 ? (
         <p className="hint">보유 포지션 없음</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>종목</th>
-              <th>수량</th>
-              <th>평단가</th>
-              <th>현재가</th>
-              <th>손익</th>
-            </tr>
-          </thead>
-          <tbody>
-            {positions.map((p) => (
-              <tr key={p.symbol}>
-                <td>
-                  <div className="position-symbol">{p.symbol}</div>
-                  <div className="position-name" title={p.name}>
-                    {p.name}
-                  </div>
-                </td>
-                <td>{formatQuantity(p.quantity)}</td>
-                <td>${p.avgPrice.toFixed(2)}</td>
-                <td>${p.currentPrice.toFixed(2)}</td>
-                <td className={pnlClass(p.unrealizedPnl)}>
-                  {formatPnl(p.unrealizedPnl)}
-                  <div className="position-pnl-pct">
-                    ({clean(p.unrealizedPnlPercent) > 0 ? "+" : ""}
-                    {clean(p.unrealizedPnlPercent).toFixed(1)}%)
-                  </div>
-                </td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>종목</th>
+                <th>수량</th>
+                <th>평단가</th>
+                <th>현재가</th>
+                <th>손익</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {positions.map((p) => (
+                <tr key={p.symbol}>
+                  <td>
+                    <div className="position-symbol">{p.symbol}</div>
+                    <div className="position-name" title={p.name}>
+                      {p.name}
+                    </div>
+                  </td>
+                  <td>{formatQuantity(p.quantity)}</td>
+                  <td>${p.avgPrice.toFixed(2)}</td>
+                  <td>${p.currentPrice.toFixed(2)}</td>
+                  <td className={pnlClass(p.unrealizedPnl)}>
+                    {formatPnl(p.unrealizedPnl)}
+                    <div className="position-pnl-pct">
+                      ({clean(p.unrealizedPnlPercent) > 0 ? "+" : ""}
+                      {clean(p.unrealizedPnlPercent).toFixed(1)}%)
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
