@@ -8,11 +8,22 @@ import { guardrailRouter } from "./routes/guardrail.js";
 import { agentRouter } from "./routes/agent.js";
 import { decisionsRouter } from "./routes/decisions.js";
 import { portfolioRouter } from "./routes/portfolio.js";
+import { getAgentState } from "./store.js";
+import { startAgent } from "./services/agentLoop.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
   await initSchema();
+
+  // The interval loop lives only in process memory, so a redeploy or crash
+  // silently stops trading even though the DB still says "running". Resume
+  // it here so the agent survives restarts instead of going quietly idle.
+  const agentState = await getAgentState();
+  if (agentState.running) {
+    console.log("[startup] agent_state.running was true — resuming agent loop");
+    await startAgent();
+  }
 
   const app = express();
   app.use(cors());
