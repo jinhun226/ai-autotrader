@@ -224,6 +224,7 @@ export async function insertDecision(row: {
   symbol: string;
   quantity: number;
   rationale: string;
+  rationaleKo: string;
   confidence: number;
   inputTokens: number;
   outputTokens: number;
@@ -235,9 +236,9 @@ export async function insertDecision(row: {
 }): Promise<void> {
   await pool.query(
     `INSERT INTO decisions
-      (created_at, snapshot, action, symbol, quantity, rationale, confidence,
+      (created_at, snapshot, action, symbol, quantity, rationale, rationale_ko, confidence,
        input_tokens, output_tokens, cost_usd, model, approved, block_reason, risk_profile)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
     [
       new Date().toISOString(),
       JSON.stringify(row.snapshot),
@@ -245,6 +246,7 @@ export async function insertDecision(row: {
       row.symbol,
       row.quantity,
       row.rationale,
+      row.rationaleKo,
       row.confidence,
       row.inputTokens,
       row.outputTokens,
@@ -259,7 +261,7 @@ export async function insertDecision(row: {
 
 export async function listDecisions(limit = 50): Promise<DecisionLogRow[]> {
   const { rows } = await pool.query(
-    `SELECT id, created_at, snapshot, action, symbol, quantity, rationale, confidence,
+    `SELECT id, created_at, snapshot, action, symbol, quantity, rationale, rationale_ko, confidence,
             input_tokens, output_tokens, cost_usd, model, approved, block_reason, risk_profile
      FROM decisions ORDER BY id DESC LIMIT $1`,
     [limit]
@@ -273,6 +275,7 @@ export async function listDecisions(limit = 50): Promise<DecisionLogRow[]> {
       symbol: string;
       quantity: number;
       rationale: string;
+      rationale_ko: string;
       confidence: number;
       input_tokens: number;
       output_tokens: number;
@@ -290,6 +293,7 @@ export async function listDecisions(limit = 50): Promise<DecisionLogRow[]> {
     symbol: r.symbol,
     quantity: r.quantity,
     rationale: r.rationale,
+    rationaleKo: r.rationale_ko,
     confidence: r.confidence,
     inputTokens: r.input_tokens,
     outputTokens: r.output_tokens,

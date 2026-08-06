@@ -44,6 +44,7 @@ export async function initSchema(): Promise<void> {
       symbol TEXT NOT NULL,
       quantity DOUBLE PRECISION NOT NULL,
       rationale TEXT NOT NULL,
+      rationale_ko TEXT NOT NULL DEFAULT '',
       confidence DOUBLE PRECISION NOT NULL,
       input_tokens INTEGER NOT NULL,
       output_tokens INTEGER NOT NULL,
@@ -77,6 +78,7 @@ export async function initSchema(): Promise<void> {
   await pool.query(`
     ALTER TABLE guardrail_settings ADD COLUMN IF NOT EXISTS risk_profile TEXT NOT NULL DEFAULT 'moderate';
     ALTER TABLE decisions ADD COLUMN IF NOT EXISTS risk_profile TEXT NOT NULL DEFAULT 'moderate';
+    ALTER TABLE decisions ADD COLUMN IF NOT EXISTS rationale_ko TEXT NOT NULL DEFAULT '';
   `);
 
   await pool.query(

@@ -29,6 +29,12 @@ export function DecisionFeed({ decisions }: Props) {
                 </span>
               </div>
               <p className="decision-rationale">{d.rationale}</p>
+              {d.rationaleKo && (
+                <div className="decision-rationale-ko">
+                  <span className="decision-rationale-ko-label">판단 이유</span>
+                  <p>{d.rationaleKo}</p>
+                </div>
+              )}
               <div className="decision-meta">
                 <span>신뢰도 {(d.confidence * 100).toFixed(0)}%</span>
                 <span>모델 {d.model}</span>

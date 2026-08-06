@@ -74,6 +74,7 @@ export interface DecisionLogRow {
   symbol: string;
   quantity: number;
   rationale: string;
+  rationaleKo: string;
   confidence: number;
   inputTokens: number;
   outputTokens: number;

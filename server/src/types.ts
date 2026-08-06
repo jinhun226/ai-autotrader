@@ -40,6 +40,8 @@ export interface AgentDecision {
   symbol: string;
   quantity: number;
   rationale: string;
+  /** Korean translation of `rationale`, shown to the user in the decision log UI. */
+  rationaleKo: string;
   confidence: number;
 }
 
@@ -51,6 +53,7 @@ export interface DecisionLogRow {
   symbol: string;
   quantity: number;
   rationale: string;
+  rationaleKo: string;
   confidence: number;
   inputTokens: number;
   outputTokens: number;

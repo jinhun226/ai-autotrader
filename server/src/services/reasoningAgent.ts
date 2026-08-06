@@ -30,9 +30,10 @@ function buildDecisionSchema(allowSell: boolean) {
         symbol: { type: "string" },
         quantity: { type: "number" },
         rationale: { type: "string" },
+        rationaleKo: { type: "string" },
         confidence: { type: "number" },
       },
-      required: ["action", "symbol", "quantity", "rationale", "confidence"],
+      required: ["action", "symbol", "quantity", "rationale", "rationaleKo", "confidence"],
       additionalProperties: false,
     },
   };
@@ -55,7 +56,8 @@ DIVERSIFICATION — DO NOT COMPUTE THIS YOURSELF: trading_candidates gives you, 
 
 PACING: time_budget tells you how much of your allowed runtime has elapsed and roughly how many decision cycles remain (null fields = no time limit, no need to pace). cost_budget tells you how much of the API cost limit remains. When a time limit IS set, do not deploy most of available_capital_usd in the first few cycles — spread buys across the remaining cycles/time so you can react to how earlier picks perform and still be diversified near the end of the window. If remainingHours/estimatedRemainingCycles is small and you are still underinvested relative to a diversified target, it is reasonable to size a bit larger to finish deploying before time runs out.
 Fractional share quantities are fully supported down to small dollar amounts (e.g. 0.12, 0.03, 1.5) — this mirrors Alpaca's real fractional-trading API for major US equities. Your quantity does not need to equal maxBuyQuantity — size it to your actual conviction (a smaller, high-conviction slice is fine), just never exceed it. Never describe available capital as "insufficient" or "capital-constrained" merely because it can't buy a whole share — with fractional trading, any maxBuyNotionalUsd above roughly $1 is enough to size a proportionate buy. Only choose "hold" because the investment signal itself is weak or mixed, never because the resulting position would be small in dollar terms.
-Be conservative: prefer "hold" when the evidence is weak or mixed. Always explain your reasoning briefly (2-3 sentences) citing the specific data points you used.`;
+Be conservative: prefer "hold" when the evidence is weak or mixed. Always explain your reasoning briefly (2-3 sentences) citing the specific data points you used.
+Provide "rationaleKo": a natural, fluent Korean translation of "rationale" (not a literal word-for-word gloss) — same reasoning and data points, written for a Korean-speaking user of this trading dashboard.`;
 }
 
 export interface ReasoningResult {
@@ -140,7 +142,9 @@ export async function decide(params: {
 
   const response = await client.messages.create({
     model: settings.model,
-    max_tokens: 512,
+    // Bumped from 512: rationale + rationaleKo (Korean translation) together
+    // need more room, and truncated JSON output breaks JSON.parse below.
+    max_tokens: 900,
     system: buildSystemPrompt(settings.allowSell, settings.riskProfile),
     // Sonnet 5 thinks by default (billed); disable it since this is a single
     // structured-decision call, not a task that benefits from extended reasoning.
